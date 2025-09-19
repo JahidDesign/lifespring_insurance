@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+/* Global body font */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafb;
+  color: #1f2937; /* Tailwind gray-800 */
+}
+
+/* Headings */
+h1 {
+  font-family: 'Playfair Display', serif;
+}
+h2 {
+  font-family: 'Playfair Display', serif;
+}
+h3 {
+  font-family: 'Montserrat', sans-serif;
+}
+h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Paragraphs */
+p {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+}
+
+/* Buttons, small UI elements */
+button {
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Divs and sections */
+div, section, header, footer {
+  font-family: 'Inter', sans-serif;
+}
