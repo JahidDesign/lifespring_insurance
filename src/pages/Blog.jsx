@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import BlogCards from "../components/BlogCard";
 import BlogCard from "./BlogCard";
 import VisitorNewsCards from "./VisitorNewsCards";
 
@@ -49,16 +48,7 @@ const Blog = () => {
         </p>
       </div>
 
-      {/* Blog Grid */}
-      <div className="max-w-7xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {blogs.length > 0 ? (
-          blogs.map((blog) => <BlogCards key={blog._id} blog={blog} />)
-        ) : (
-          <p className="col-span-full text-center text-gray-500">
-            No blogs available at the moment.
-          </p>
-        )}
-      </div>
+ 
 
       {/* Visitor News Section */}
       <div className="max-w-7xl mx-auto mt-16">

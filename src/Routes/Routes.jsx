@@ -18,6 +18,7 @@ const InsuranceDetails = lazy(() => import("../pages/InsuranceDetails.jsx"));
 const MyBookQuote = lazy(() => import("../pages/MyBookQuote.jsx"));
 const BlogDetail = lazy(() => import("../pages/BlogDetail.jsx"));
 
+
 // ---------------- Admin Pages ----------------
 const AdminLayout = lazy(() => import("../components/admin/AdminLayout.jsx"));
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
@@ -175,7 +176,7 @@ const AppRoutes = () => (
         {/* Users */}
         <Route path="manage-users" element={<ManageUsers />} />
         <Route path="manage-users/:mode/:id?" element={<InsuranceForm />} />
-        <Route path="manage-users/edit/" element={<UserInsuranceTabs />} />
+        <Route path="manage-users/edit" element={<UserInsuranceTabs />} />
 
         {/* Transactions & Applications */}
         <Route path="transactions" element={<Transactions />} />
@@ -184,27 +185,27 @@ const AppRoutes = () => (
         {/* Blog */}
         <Route path="manage-blog" element={<ManageBlog />} />
         <Route path="manage-blog/:mode/:id?" element={<AddBlogForm />} />
-        <Route path="manage-blog/edit/:id" element={<ManageBlogTable />} />
+        <Route path="manage-blog/edit" element={<ManageBlogTable />} />
 
         {/* Messages */}
         <Route path="messages-section" element={<Messages />} />
         <Route path="messages-section/:mode/:id?" element={<ContactManager />} />
-        <Route path="messages-section/edit/:id" element={<ContactTableManager />} />
+        <Route path="messages-section/edit" element={<ContactTableManager />} />
 
         {/* Visitor News */}
         <Route path="visitor-news" element={<VisitorNews />} />
         <Route path="visitor-news/:mode/:id?" element={<AddVisitorForm />} />
-        <Route path="visitor-news/edit/:id" element={<VisitorNewsTable />} />
+        <Route path="visitor-news/edit" element={<VisitorNewsTable />} />
 
         {/* Reviews Section */}
         <Route path="reviews-section" element={<ReviewsSection />} />
         <Route path="reviews-section/:mode/:id?" element={<ReviewsSectionForm />} />
-        <Route path="reviews-section/edit/:id" element={<AdminReviewsTable />} />
+        <Route path="reviews-section/edit" element={<AdminReviewsTable />} />
 
         {/* Hero Section */}
         <Route path="hero-section" element={<HeroCarouselManager />} />
         <Route path="hero-section/:mode/:id?" element={<HeroCarouselForm />} />
-        <Route path="hero-section/edit/:id" element={<HeroCarouselManager />} />
+        <Route path="hero-section/edit" element={<HeroCarouselManager />} />
       </Route>
     </Routes>
   </Suspense>

@@ -15,8 +15,10 @@ const InsuranceDashboard = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
+
   const limit = 6;
 
+  // ================== Fetch Services ==================
   const fetchServices = async () => {
     try {
       let query = `?q=${search}&page=${page}&limit=${limit}`;
@@ -26,14 +28,20 @@ const InsuranceDashboard = () => {
       if (premiumMin) query += `&premiumMin=${premiumMin}`;
       if (premiumMax) query += `&premiumMax=${premiumMax}`;
 
-      const response = await fetch(`https://insurances-lmy8.onrender.com/ourInsurancePolice${query}`);
+      const apiUrl = `https://insurances-lmy8.onrender.com/ourInsurancePolice${query}`;
+      console.log("Fetching:", apiUrl); // ✅ Debug log
+
+      const response = await fetch(apiUrl);
       const data = await response.json();
+
       if (data.success) {
         setServices(data.services);
         setTotalPages(data.totalPages);
+      } else {
+        Swal.fire("Error", data.message || "Failed to load services", "error");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
       Swal.fire("Error!", "Unable to fetch services.", "error");
     }
   };
@@ -42,9 +50,7 @@ const InsuranceDashboard = () => {
     fetchServices();
   }, [page, search, providerFilter, coverageMin, coverageMax, premiumMin, premiumMax]);
 
-  const providerOptions = [...new Set(services.map((s) => s.providerName))];
-
-  // Top Stats
+  // ================== Stats ==================
   const totalServices = services.length;
   const activeProviders = new Set(services.map((s) => s.providerName)).size;
   const avgPremium =
@@ -52,15 +58,18 @@ const InsuranceDashboard = () => {
       ? Math.round(services.reduce((sum, s) => sum + s.premium, 0) / services.length)
       : 0;
 
+  const providerOptions = [...new Set(services.map((s) => s.providerName))];
+
+  // ================== UI ==================
   return (
     <div className="flex flex-col min-h-screen p-4 md:p-8 bg-gradient-to-b from-gray-50 to-blue-50">
-      {/* Hero Section */}
+      {/* Hero */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl p-6 mb-6 shadow-lg">
         <h1 className="text-3xl font-bold">Insurance Services Dashboard</h1>
         <p className="mt-2 text-blue-100">Manage and browse insurance services efficiently.</p>
       </div>
 
-      {/* Top Stats */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-6 shadow hover:shadow-lg transition flex items-center gap-4">
           <FiShield className="w-8 h-8 text-blue-500" />
@@ -168,7 +177,7 @@ const InsuranceDashboard = () => {
         />
       </div>
 
-      {/* Card Grid */}
+      {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.map((s) => (
           <div
@@ -185,10 +194,12 @@ const InsuranceDashboard = () => {
             <p className="text-gray-500 mt-1 text-sm line-clamp-3">{s.description}</p>
             <div className="mt-3 space-y-1">
               <p>
-                <span className="font-medium">Coverage:</span> ${s.coverageAmount.toLocaleString()}
+                <span className="font-medium">Coverage:</span>{" "}
+                ${s.coverageAmount.toLocaleString()}
               </p>
               <p>
-                <span className="font-medium">Premium:</span> ${s.premium.toLocaleString()}
+                <span className="font-medium">Premium:</span>{" "}
+                ${s.premium.toLocaleString()}
               </p>
             </div>
             <Link

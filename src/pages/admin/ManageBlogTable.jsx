@@ -1,3 +1,4 @@
+// src/components/ManageBlogTable.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -5,6 +6,7 @@ import Swal from "sweetalert2";
 const ManageBlogTable = () => {
   const [blogs, setBlogs] = useState([]);
   const [editingBlog, setEditingBlog] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     details: "",
@@ -28,7 +30,7 @@ const ManageBlogTable = () => {
     fetchBlogs();
   }, []);
 
-  // Delete blog by ID
+  // Delete blog
   const handleDelete = async (id) => {
     const confirmed = await Swal.fire({
       title: "Are you sure?",
@@ -52,7 +54,7 @@ const ManageBlogTable = () => {
     }
   };
 
-  // Start editing blog
+  // Start editing
   const startEdit = (blog) => {
     setEditingBlog(blog);
     setFormData({
@@ -64,9 +66,9 @@ const ManageBlogTable = () => {
     });
   };
 
-  // Cancel editing
-  const cancelEdit = () => {
+  const cancelForm = () => {
     setEditingBlog(null);
+    setShowCreateModal(false);
     setFormData({
       title: "",
       details: "",
@@ -76,49 +78,77 @@ const ManageBlogTable = () => {
     });
   };
 
-  // Update blog on server
+  // Input change
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // Update blog
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editingBlog) return;
-
     try {
-      const updatedBlog = {
-        ...formData,
-        updatedAt: new Date().toISOString(),
-      };
+      const updatedBlog = { ...formData, updatedAt: new Date().toISOString() };
       await axios.put(
         `https://insurances-lmy8.onrender.com/blogpost/${editingBlog._id}`,
         updatedBlog
       );
-
       setBlogs(
         blogs.map((b) =>
           b._id === editingBlog._id ? { ...b, ...updatedBlog } : b
         )
       );
       Swal.fire("Success", "Blog updated successfully", "success");
-      cancelEdit();
+      cancelForm();
     } catch (error) {
       console.error("Update failed", error);
       Swal.fire("Error", "Failed to update blog", "error");
     }
   };
 
-  // Handle input change for edit form
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  // Create blog
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    try {
+      const newBlog = { ...formData, date: new Date().toISOString() };
+      const res = await axios.post(
+        "https://insurances-lmy8.onrender.com/blogpost",
+        newBlog
+      );
+      setBlogs([res.data, ...blogs]);
+      Swal.fire("Success", "Blog created successfully", "success");
+      cancelForm();
+    } catch (error) {
+      console.error("Create failed", error);
+      Swal.fire("Error", "Failed to create blog", "error");
+    }
   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <h2 className="text-3xl font-bold mb-6 text-center text-black">Manage Blogs</h2>
 
-      {/* Edit Form Modal */}
-      {editingBlog && (
+      {/* Add New Blog */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition"
+        >
+          + Add New Blog
+        </button>
+      </div>
+
+      {/* Create/Edit Modal */}
+      {(editingBlog || showCreateModal) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full relative text-black">
-            <h3 className="text-2xl font-semibold mb-4">Edit Blog</h3>
-            <form onSubmit={handleUpdate} className="space-y-4">
+            <h3 className="text-2xl font-semibold mb-4">
+              {editingBlog ? "Edit Blog" : "Create New Blog"}
+            </h3>
+            <form
+              onSubmit={editingBlog ? handleUpdate : handleCreate}
+              className="space-y-4"
+            >
               <input
                 type="text"
                 name="title"
@@ -137,6 +167,8 @@ const ManageBlogTable = () => {
                 placeholder="Blog Details"
                 className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-black"
               />
+
+              {/* Blog Image URL & Preview */}
               <input
                 type="text"
                 name="image"
@@ -146,6 +178,15 @@ const ManageBlogTable = () => {
                 placeholder="Cover Image URL"
                 className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
+              {formData.image && (
+                <img
+                  src={formData.image}
+                  alt="Blog Preview"
+                  className="w-full h-40 object-cover rounded-md mt-2"
+                />
+              )}
+
+              {/* Author & Author Image */}
               <input
                 type="text"
                 name="author"
@@ -163,19 +204,29 @@ const ManageBlogTable = () => {
                 placeholder="Author Image URL (optional)"
                 className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
+              {formData.authorImage && (
+                <img
+                  src={formData.authorImage}
+                  alt="Author Preview"
+                  className="w-16 h-16 rounded-full mt-2"
+                />
+              )}
+
               <div className="flex justify-end gap-4 mt-4">
                 <button
                   type="button"
-                  onClick={cancelEdit}
+                  onClick={cancelForm}
                   className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                  className={`px-4 py-2 rounded-md text-white ${
+                    editingBlog ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"
+                  } transition`}
                 >
-                  Update Blog
+                  {editingBlog ? "Update Blog" : "Create Blog"}
                 </button>
               </div>
             </form>
@@ -187,7 +238,9 @@ const ManageBlogTable = () => {
       <table className="w-full border-collapse border border-gray-300 shadow-md rounded-md text-black">
         <thead className="bg-gray-100 text-black">
           <tr>
+            <th className="border border-gray-300 px-4 py-2 text-left">Image</th>
             <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
+            <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
             <th className="border border-gray-300 px-4 py-2 text-left">Author</th>
             <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
             <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
@@ -196,21 +249,39 @@ const ManageBlogTable = () => {
         <tbody>
           {blogs.length === 0 && (
             <tr>
-              <td colSpan="4" className="text-center py-6 italic text-gray-600">
+              <td colSpan="6" className="text-center py-6 italic text-gray-600">
                 No blogs found.
               </td>
             </tr>
           )}
           {blogs.map((blog) => (
             <tr key={blog._id} className="hover:bg-gray-50">
-              <td
-                className="border border-gray-300 px-4 py-2 max-w-xs truncate"
-                title={blog.title}
-              >
+              <td className="border border-gray-300 px-4 py-2">
+                <img
+                  src={blog.image}
+                  alt={blog.title}
+                  className="w-20 h-16 object-cover rounded"
+                />
+              </td>
+              <td className="border border-gray-300 px-4 py-2 max-w-xs truncate" title={blog.title}>
                 {blog.title}
               </td>
-              <td className="border border-gray-300 px-4 py-2">{blog.author}</td>
-              <td className="border border-gray-300 px-4 py-2">{blog.date}</td>
+              <td className="border border-gray-300 px-4 py-2 max-w-xs truncate" title={blog.details}>
+                {blog.details}
+              </td>
+              <td className="border border-gray-300 px-4 py-2 flex items-center gap-2">
+                {blog.authorImage && (
+                  <img
+                    src={blog.authorImage}
+                    alt={blog.author}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                )}
+                {blog.author}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {blog.date ? new Date(blog.date).toLocaleDateString() : "N/A"}
+              </td>
               <td className="border border-gray-300 px-4 py-2 flex gap-2">
                 <button
                   onClick={() => startEdit(blog)}
