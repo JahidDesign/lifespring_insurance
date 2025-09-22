@@ -12,8 +12,10 @@ import {
 import { auth } from "../firebase";
 import toast from "react-hot-toast";
 
+// Create Context
 export const AuthContext = createContext();
 
+// Auth Provider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
@@ -22,6 +24,7 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
+
   const [token, setToken] = useState(localStorage.getItem("authToken") || null);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   // Sync Firebase user with backend
   const syncWithBackend = useCallback(
     async (firebaseUser) => {
-      if (!firebaseUser) return; // Do nothing if no user
+      if (!firebaseUser) return;
 
       try {
         const idToken = await getIdToken(firebaseUser, true);
@@ -50,17 +53,20 @@ export const AuthProvider = ({ children }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idToken }),
         });
-        if (!res.ok) throw new Error("Backend login failed");
-        const data = await res.json();
 
+        if (!res.ok) throw new Error("Backend login failed");
+
+        const data = await res.json();
         let updatedUser = data.user;
-        if (updatedUser?.email === MAIN_ADMIN_EMAIL) updatedUser.role = "admin";
+
+        if (updatedUser?.email === MAIN_ADMIN_EMAIL) {
+          updatedUser.role = "admin";
+        }
 
         setUser(updatedUser);
         setToken(data.token);
       } catch (err) {
         console.error("❌ Backend sync error:", err);
-        // ❌ DO NOT logout on error
       } finally {
         setLoading(false);
       }
@@ -68,13 +74,17 @@ export const AuthProvider = ({ children }) => {
     [API_URL]
   );
 
-  // Firebase auth listener
+  // Firebase listener
   useEffect(() => {
     setPersistence(auth, browserLocalPersistence).then(() => {
       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) await syncWithBackend(firebaseUser);
-        else setLoading(false); // Do NOT logout
+        if (firebaseUser) {
+          await syncWithBackend(firebaseUser);
+        } else {
+          setLoading(false);
+        }
       });
+
       return () => unsubscribe();
     });
   }, [syncWithBackend]);
@@ -92,16 +102,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Manual login
+  // Manual login (JWT)
   const login = (userData, jwtToken) => {
-    if (userData?.email === MAIN_ADMIN_EMAIL) userData.role = "admin";
+    if (userData?.email === MAIN_ADMIN_EMAIL) {
+      userData.role = "admin";
+    }
     setUser(userData);
     setToken(jwtToken);
   };
 
-  // Manual logout only
+  // Logout
   const logout = async () => {
-    await firebaseSignOut(auth);
+    try {
+      await firebaseSignOut(auth);
+    } catch (err) {
+      console.error("❌ Firebase sign out failed:", err);
+    }
     setUser(null);
     setToken(null);
     toast.success("Logged out successfully");

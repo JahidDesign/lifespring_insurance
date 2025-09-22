@@ -2,7 +2,7 @@ import ApplicationManager from './ApplicationTable';
 import InsuranceAgentDashboard from './InsuranceAgentDashboard';
 import AdminDashboard from './AdminDashboard';
 import CustomerTable from '../CustomerTable';
-import PaymentsTable from './PaymentsTableManagment';
+import PoliciesTable from '../../components/PoliciesTable';
 import AdminPaymentsTable from './AdminPaymentsTable';
 import BlogContactManager from "./adminContact";
 import Subscribers from "./SubscribersMG";
@@ -21,11 +21,9 @@ const Dashboard = () => {
          <section className="mb-10">
         <CustomerTable />
        </section>
-      <section className="mb-10">
-        <h2 className="text-xl font-medium mb-2">Payments Management</h2>
-        <PaymentsTable />
+        <section className="mb-10">
+        <PoliciesTable />
         </section>
-
       <section className="mb-5">
         <ApplicationManager />
       </section>

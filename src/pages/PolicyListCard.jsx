@@ -1,16 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Star, DollarSign, Shield, CreditCard, ChevronLeft, ChevronRight, Eye, EyeOff, Lock, Wifi  } from "lucide-react";
-
+import { AuthContext } from "../context/AuthContext";
 // Mock AuthContext since we don't have access to the real one
-const AuthContext = React.createContext();
-const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({ id: 1, name: "John Doe", email: "john@example.com" });
-  return (
-    <AuthContext.Provider value={{ user, setUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+
 
 // Mock payment processing
 const processPayment = async (cardData, policyTitle) => {
@@ -758,7 +750,7 @@ const PolicyCardsWithPayment = () => {
 };
 
 export default () => (
-  <AuthProvider>
+  
     <PolicyCardsWithPayment />
-  </AuthProvider>
+  
 );
