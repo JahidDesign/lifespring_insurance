@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Send, Phone, Mail, MapPin, Clock, CheckCircle, AlertCircle, MessageSquare, Shield, Users } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import MeetOurTeam from "../components/MeetOurTeam";
 const API_URL = "https://insurances-lmy8.onrender.com/contact";
 
 const ContactPage = () => {
@@ -62,21 +63,21 @@ const ContactPage = () => {
       icon: Phone,
       title: "Call Us",
       value: "+880 1234-567890",
-      color: "from-blue-500 to-blue-600",
+      color: "from-blue-400 to-blue-500",
       description: "Mon-Fri, 9AM-6PM"
     },
     {
       icon: Mail,
       title: "Email Us",
       value: "support@insurance.com",
-      color: "from-purple-500 to-purple-600",
+      color: "from-purple-400 to-purple-500",
       description: "24/7 Support Available"
     },
     {
       icon: MapPin,
       title: "Visit Us",
       value: "Dhaka, Bangladesh",
-      color: "from-cyan-500 to-cyan-600",
+      color: "from-cyan-400 to-cyan-500",
       description: "Multiple Locations"
     }
   ];
@@ -88,9 +89,8 @@ const ContactPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background Elements */}
-       <Helmet>
+    <div className="min-h-screen bg-white text-black relative overflow-hidden">
+      <Helmet>
         <title>Contact Us | Smart Insurance</title>
         <meta
           name="description"
@@ -104,28 +104,22 @@ const ContactPage = () => {
         <link rel="icon" type="image/png" href="insurance.png" />
         <link rel="apple-touch-icon" href="insurance.png" />
       </Helmet>
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-10 opacity-20">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-          <div className="absolute top-3/4 right-1/4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/2 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-2000"></div>
-        </div>
-      </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header Section */}
+        <MeetOurTeam/>
         <div className="text-center py-20 px-6">
           <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-400 mb-6 animate-pulse">
             Get In Touch
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
             Ready to secure your future? Our insurance experts are here to guide you through every step of your journey.
           </p>
           
           {/* Features */}
           <div className="flex justify-center gap-8 mt-12 flex-wrap">
             {features.map((feature, index) => (
-              <div key={index} className="flex items-center gap-2 text-gray-300 hover:text-cyan-400 transition-colors duration-300">
+              <div key={index} className="flex items-center gap-2 text-gray-700 hover:text-cyan-500 transition-colors duration-300">
                 <feature.icon className="w-5 h-5" />
                 <span className="text-sm font-medium">{feature.text}</span>
               </div>
@@ -142,16 +136,16 @@ const ContactPage = () => {
               <div className="space-y-6">
                 {contactInfo.map((info, index) => (
                   <div key={index} className="group relative">
-                    <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur-xl from-cyan-400/20 to-purple-400/20"></div>
-                    <div className="relative bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+                    <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl blur-xl from-cyan-200 to-purple-200"></div>
+                    <div className="relative bg-gray-50 border border-gray-200 rounded-2xl p-6 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${info.color} flex items-center justify-center shadow-lg`}>
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${info.color} flex items-center justify-center shadow-md`}>
                           <info.icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-white font-semibold text-lg">{info.title}</h3>
-                          <p className="text-cyan-300 font-medium">{info.value}</p>
-                          <p className="text-gray-400 text-sm">{info.description}</p>
+                          <h3 className="text-black font-semibold text-lg">{info.title}</h3>
+                          <p className="text-gray-600 font-medium">{info.value}</p>
+                          <p className="text-gray-500 text-sm">{info.description}</p>
                         </div>
                       </div>
                     </div>
@@ -160,26 +154,26 @@ const ContactPage = () => {
               </div>
 
               {/* Additional Info */}
-              <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-lg border border-white/20 rounded-2xl p-6">
-                <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2">
-                  <MessageSquare className="w-6 h-6 text-cyan-400" />
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+                <h3 className="text-black font-bold text-xl mb-4 flex items-center gap-2">
+                  <MessageSquare className="w-6 h-6 text-cyan-500" />
                   Why Choose Us?
                 </h3>
-                <ul className="space-y-3 text-gray-300">
+                <ul className="space-y-3 text-gray-700">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-green-500" />
                     24/7 Customer Support
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-green-500" />
                     Quick Claims Processing
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-green-500" />
                     Competitive Rates
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-green-500" />
                     Trusted by 100K+ Customers
                   </li>
                 </ul>
@@ -189,9 +183,9 @@ const ContactPage = () => {
             {/* Contact Form */}
             <div className="lg:col-span-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-3xl blur-xl"></div>
-                <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
-                  <h2 className="text-3xl font-bold text-white mb-8 text-center">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-200 to-purple-200 rounded-3xl blur-xl"></div>
+                <div className="relative bg-gray-50 border border-gray-200 rounded-3xl p-8 shadow-xl">
+                  <h2 className="text-3xl font-bold text-black mb-8 text-center">
                     Send Us a Message
                   </h2>
                   
@@ -199,8 +193,8 @@ const ContactPage = () => {
                   {submitStatus && (
                     <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
                       submitStatus === 'success' 
-                        ? 'bg-green-500/20 border border-green-500/30 text-green-300' 
-                        : 'bg-red-500/20 border border-red-500/30 text-red-300'
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-red-100 border border-red-300 text-red-800'
                     }`}>
                       {submitStatus === 'success' ? (
                         <CheckCircle className="w-5 h-5" />
@@ -218,7 +212,7 @@ const ContactPage = () => {
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-gray-300 text-sm font-medium">Full Name *</label>
+                        <label className="text-gray-700 text-sm font-medium">Full Name *</label>
                         <input
                           type="text"
                           name="name"
@@ -226,11 +220,11 @@ const ContactPage = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                          className="w-full p-4 bg-white border border-gray-300 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-gray-300 text-sm font-medium">Email Address *</label>
+                        <label className="text-gray-700 text-sm font-medium">Email Address *</label>
                         <input
                           type="email"
                           name="email"
@@ -238,42 +232,42 @@ const ContactPage = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                          className="w-full p-4 bg-white border border-gray-300 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                         />
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-gray-300 text-sm font-medium">Phone Number</label>
+                        <label className="text-gray-700 text-sm font-medium">Phone Number</label>
                         <input
                           type="tel"
                           name="phone"
                           placeholder="+880 1234-567890"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                          className="w-full p-4 bg-white border border-gray-300 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-gray-300 text-sm font-medium">Inquiry Type</label>
+                        <label className="text-gray-700 text-sm font-medium">Inquiry Type</label>
                         <select
                           name="inquiryType"
                           value={formData.inquiryType}
                           onChange={handleChange}
-                          className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                          className="w-full p-4 bg-white border border-gray-300 rounded-xl text-black focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                         >
-                          <option value="general" className="bg-gray-800">General Inquiry</option>
-                          <option value="claims" className="bg-gray-800">Claims Support</option>
-                          <option value="support" className="bg-gray-800">Technical Support</option>
-                          <option value="quote" className="bg-gray-800">Get a Quote</option>
-                          <option value="partnership" className="bg-gray-800">Partnership</option>
+                          <option value="general">General Inquiry</option>
+                          <option value="claims">Claims Support</option>
+                          <option value="support">Technical Support</option>
+                          <option value="quote">Get a Quote</option>
+                          <option value="partnership">Partnership</option>
                         </select>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-gray-300 text-sm font-medium">Subject *</label>
+                      <label className="text-gray-700 text-sm font-medium">Subject *</label>
                       <input
                         type="text"
                         name="subject"
@@ -281,12 +275,12 @@ const ContactPage = () => {
                         value={formData.subject}
                         onChange={handleChange}
                         required
-                        className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                        className="w-full p-4 bg-white border border-gray-300 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-gray-300 text-sm font-medium">Message *</label>
+                      <label className="text-gray-700 text-sm font-medium">Message *</label>
                       <textarea
                         name="message"
                         placeholder="Tell us more about your inquiry..."
@@ -294,7 +288,7 @@ const ContactPage = () => {
                         value={formData.message}
                         onChange={handleChange}
                         required
-                        className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm resize-none"
+                        className="w-full p-4 bg-white border border-gray-300 rounded-xl text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 resize-none"
                       ></textarea>
                     </div>
 
@@ -323,6 +317,7 @@ const ContactPage = () => {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

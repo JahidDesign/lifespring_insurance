@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import { Helmet } from "react-helmet-async";
 import AboutPage from "./AboutPage";
 import VisionMissionSection from "./VisionMissionSection";
+import MeetOurTeam from "../components/MeetOurTeam";
 
 class About extends Component {
   render() {
@@ -28,6 +29,7 @@ class About extends Component {
 
         {/* Page Content */}
         <AboutPage />
+        <MeetOurTeam/>
         <VisionMissionSection />
       </div>
     );

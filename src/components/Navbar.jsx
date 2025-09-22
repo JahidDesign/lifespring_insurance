@@ -1,7 +1,7 @@
 // File: src/components/Navbar.jsx
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, LogOut, Shield } from "lucide-react";
+import { Menu, X, User, LogOut, Shield, ChevronDown } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 
 const navLinks = [
@@ -71,37 +71,44 @@ const Navbar = () => {
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-700 ${
           scrolled
-            ? "bg-white/80 backdrop-blur-lg shadow-lg border-b border-white/20"
-            : "bg-white/50 backdrop-blur-xl shadow-xl"
+            ? "bg-white/95 backdrop-blur-xl shadow-2xl border-b border-gray-200/50"
+            : "bg-white/90 backdrop-blur-2xl shadow-xl border-b border-gray-200/30"
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <img
-              src="insurancen.svg"
-              alt="LifeSecure"
-              className="w-36 h-auto object-contain"
-            />
+          <Link to="/" className="flex items-center group">
+            <div className="relative overflow-hidden rounded-xl">
+              <img
+                src="insurancen.svg"
+                alt="LifeSecure"
+                className="w-36 h-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-4 text-sm font-medium">
+          <div className="hidden lg:flex items-center space-x-2 text-sm font-medium">
             {navLinks.map(({ name, path }) => {
               const isBookQuote = path === "/mybook-quote";
+              const isActive = location.pathname === path;
               return (
                 <Link
                   key={name}
                   to={path}
-                  className={`relative px-4 py-2 rounded-lg transition-all duration-500 ${
-                    location.pathname === path
-                      ? "bg-blue-500 text-white shadow-lg"
-                      : "text-gray-700 hover:bg-gray-100"
+                  className={`relative px-4 py-2.5 rounded-xl transition-all duration-300 group overflow-hidden ${
+                    isActive
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/80"
                   }`}
                 >
-                  {name}
+                  <span className="relative z-10">{name}</span>
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  )}
                   {isBookQuote && bookedCount > 0 && (
-                    <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-600 rounded-full">
+                    <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-lg animate-pulse">
                       {bookedCount}
                     </span>
                   )}
@@ -112,8 +119,9 @@ const Navbar = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 transition"
+                className="px-4 py-2.5 rounded-xl text-orange-600 hover:text-orange-700 hover:bg-orange-50/80 transition-all duration-300 border border-orange-300/50 hover:border-orange-400/70"
               >
+                <Shield className="w-4 h-4 inline-block mr-2" />
                 Admin Panel
               </Link>
             )}
@@ -123,34 +131,44 @@ const Navbar = () => {
               <div className="relative ml-4" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition"
+                  className="flex items-center gap-3 p-2 pl-3 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-all duration-300 border border-gray-300/50 hover:border-gray-400/50 group"
                 >
-                  <img
-                    src={photoURL}
-                    alt="avatar"
-                    className="w-10 h-10 rounded-full object-cover border"
-                  />
-                  <span className="hidden xl:block text-gray-800">{displayName}</span>
+                  <span className="hidden xl:block text-gray-700 group-hover:text-gray-900 transition-colors duration-300">
+                    {displayName}
+                  </span>
+                  <div className="relative">
+                    <img
+                      src={photoURL}
+                      alt="avatar"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-gray-300/50 group-hover:border-blue-500/50 transition-all duration-300"
+                    />
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-xl py-2 z-50">
-                    <div className="px-4 py-2 border-b flex items-center gap-3">
-                      <img
-                        src={photoURL}
-                        alt="avatar"
-                        className="w-12 h-12 rounded-lg object-cover border"
-                      />
+                  <div className="absolute right-0 mt-3 w-72 bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl py-3 z-50 border border-gray-200/50">
+                    <div className="px-4 py-3 border-b border-gray-200/50 flex items-center gap-4">
+                      <div className="relative">
+                        <img
+                          src={photoURL}
+                          alt="avatar"
+                          className="w-14 h-14 rounded-xl object-cover border-2 border-gray-300/50"
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                      </div>
                       <div>
-                        <div className="font-semibold text-gray-800">{displayName}</div>
-                        <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="font-semibold text-gray-900">{displayName}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
                     </div>
                     <Link
                       to="/profile"
                       onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded transition"
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 transition-all duration-300 mx-2 rounded-xl"
                     >
+                      <User className="w-4 h-4" />
                       Profile Settings
                     </Link>
                     <button
@@ -158,8 +176,9 @@ const Navbar = () => {
                         logout();
                         setDropdownOpen(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded transition"
+                      className="flex items-center gap-3 w-full text-left px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 mx-2 rounded-xl"
                     >
+                      <LogOut className="w-4 h-4" />
                       Sign Out
                     </button>
                   </div>
@@ -168,7 +187,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition text-sm"
+                className="ml-4 px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 text-sm font-semibold hover:scale-105"
               >
                 Login / Sign Up
               </Link>
@@ -177,45 +196,52 @@ const Navbar = () => {
 
           {/* Mobile Hamburger */}
           <button
-            className="lg:hidden p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition"
+            className="lg:hidden p-3 rounded-xl bg-gray-100/80 hover:bg-gray-200/80 transition-all duration-300 border border-gray-300/50 hover:border-gray-400/50 group"
             onClick={() => setSideMenuOpen(true)}
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-6 h-6 text-gray-600 group-hover:text-gray-900 transition-colors duration-300" />
           </button>
         </div>
 
         {/* Mobile Side Menu */}
         <div
-          className={`fixed top-0 right-0 h-screen w-72 bg-white shadow-xl z-50 transform transition-transform duration-500 ${
+          className={`fixed top-0 right-0 h-screen w-80 bg-white/95 backdrop-blur-2xl shadow-2xl z-50 transform transition-all duration-500 border-l border-gray-200/50 ${
             sideMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex justify-between items-center px-6 py-4 border-b">
-            <Link to="/" className="font-bold text-lg">
+          <div className="flex justify-between items-center px-6 py-6 border-b border-gray-200/50">
+            <Link to="/" className="font-bold text-xl text-gray-900">
               LifeSecure
             </Link>
-            <button onClick={() => setSideMenuOpen(false)}>
-              <X className="w-6 h-6" />
+            <button 
+              onClick={() => setSideMenuOpen(false)}
+              className="p-2 rounded-xl bg-gray-100/80 hover:bg-gray-200/80 transition-all duration-300 border border-gray-300/50"
+            >
+              <X className="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors duration-300" />
             </button>
           </div>
 
-          <div className="flex flex-col px-6 py-4 space-y-3 text-sm font-medium">
+          <div className="flex flex-col px-6 py-6 space-y-2 text-sm font-medium">
             {navLinks.map(({ name, path }) => {
               const isBookQuote = path === "/mybook-quote";
+              const isActive = location.pathname === path;
               return (
                 <Link
                   key={name}
                   to={path}
                   onClick={() => setSideMenuOpen(false)}
-                  className={`relative px-4 py-2 rounded-lg transition-all duration-300 ${
-                    location.pathname === path
-                      ? "bg-blue-500 text-white shadow"
-                      : "text-gray-700 hover:bg-gray-100"
+                  className={`relative px-4 py-3 rounded-xl transition-all duration-300 group overflow-hidden ${
+                    isActive
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/80"
                   }`}
                 >
-                  {name}
+                  <span className="relative z-10">{name}</span>
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  )}
                   {isBookQuote && bookedCount > 0 && (
-                    <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-600 rounded-full">
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 rounded-full shadow-lg animate-pulse">
                       {bookedCount}
                     </span>
                   )}
@@ -227,30 +253,35 @@ const Navbar = () => {
               <Link
                 to="/admin"
                 onClick={() => setSideMenuOpen(false)}
-                className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 transition"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-orange-600 hover:text-orange-700 hover:bg-orange-50/80 transition-all duration-300 border border-orange-300/50 hover:border-orange-400/70"
               >
+                <Shield className="w-4 h-4" />
                 Admin Panel
               </Link>
             )}
 
             {user && (
-              <div className="mt-6 border-t pt-4 space-y-3">
-                <div className="flex items-center gap-3 py-2">
-                  <img
-                    src={photoURL}
-                    alt="avatar"
-                    className="w-12 h-12 rounded-lg object-cover border"
-                  />
+              <div className="mt-8 border-t border-gray-200/50 pt-6 space-y-3">
+                <div className="flex items-center gap-4 py-3 px-4 rounded-xl bg-gray-100/60 border border-gray-200/60">
+                  <div className="relative">
+                    <img
+                      src={photoURL}
+                      alt="avatar"
+                      className="w-14 h-14 rounded-xl object-cover border-2 border-gray-300/50"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                  </div>
                   <div>
-                    <div className="font-semibold text-gray-800">{displayName}</div>
-                    <div className="text-xs text-gray-500">{user.email}</div>
+                    <div className="font-semibold text-gray-900">{displayName}</div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
                   </div>
                 </div>
                 <Link
                   to="/profile"
                   onClick={() => setSideMenuOpen(false)}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded transition"
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all duration-300"
                 >
+                  <User className="w-4 h-4" />
                   Profile Settings
                 </Link>
                 <button
@@ -258,14 +289,35 @@ const Navbar = () => {
                     logout();
                     setSideMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded transition"
+                  className="flex items-center gap-3 w-full text-left px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-300"
                 >
+                  <LogOut className="w-4 h-4" />
                   Sign Out
                 </button>
               </div>
             )}
+
+            {!user && (
+              <div className="mt-8 border-t border-gray-200/50 pt-6">
+                <Link
+                  to="/login"
+                  onClick={() => setSideMenuOpen(false)}
+                  className="block w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl shadow-lg text-center font-semibold hover:scale-105 transition-transform duration-300"
+                >
+                  Login / Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Backdrop overlay for mobile menu */}
+        {sideMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setSideMenuOpen(false)}
+          ></div>
+        )}
       </nav>
     </>
   );

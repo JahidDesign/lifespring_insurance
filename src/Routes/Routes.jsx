@@ -17,7 +17,9 @@ const VisitorDetailsPage = lazy(() => import("../pages/VisitorDetailsPage.jsx"))
 const InsuranceDetails = lazy(() => import("../pages/InsuranceDetails.jsx"));
 const MyBookQuote = lazy(() => import("../pages/MyBookQuote.jsx"));
 const BlogDetail = lazy(() => import("../pages/BlogDetail.jsx"));
-
+const BlogpostHomeForm = lazy(() => import("../pages/BlogpostHomeForm.jsx"));
+const ManageBlogTableHome = lazy(() => import("../pages/ManageBlogTableHome.jsx"));
+const BlogHomeDetail = lazy(() => import("../pages/BlogHomeDetail.jsx"));
 
 // ---------------- Admin Pages ----------------
 const AdminLayout = lazy(() => import("../components/admin/AdminLayout.jsx"));
@@ -25,12 +27,13 @@ const AdminDashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
 const ManagePolicies = lazy(() => import("../pages/admin/ManagePolicies.jsx"));
 const ManageUsers = lazy(() => import("../pages/admin/ManageUsers.jsx"));
 const ManageBlog = lazy(() => import("../pages/admin/ManageBlog.jsx"));
+const ManagHomeeBlog = lazy(() => import("../pages/admin/ManageHomeBlog.jsx"));
 const Transactions = lazy(() => import("../pages/admin/Transactions.jsx"));
 const ManagementTable = lazy(() => import("../pages/admin/ManagementTable.jsx"));
 const AddBlogForm = lazy(() => import("../pages/admin/AddBlogForm.jsx"));
 const ManageBlogTable = lazy(() => import("../pages/admin/ManageBlogTable.jsx"));
 const InsuranceServiceSection = lazy(() => import("../pages/admin/InsuranceServiceSection.jsx"));
-const InsuranceForm = lazy(() => import("../pages/admin/LifeInsuranceForm.jsx")); // ✅ Fixed typo
+const InsuranceForm = lazy(() => import("../pages/admin/LifeInsuranceForm.jsx"));
 const QuoteLifeInsuranceForm = lazy(() => import("../pages/QuoteLifeInsuranceFrom.jsx"));
 const CarouselSliderForm = lazy(() => import("../pages/InsuranceFormCaro.jsx"));
 const HeroCarouselForm = lazy(() => import("../pages/HeroCarouselForm.jsx"));
@@ -43,12 +46,12 @@ const VisitorNews = lazy(() => import("../pages/admin/VisitorNews.jsx"));
 const ReviewsSection = lazy(() => import("../pages/admin/ReviewsSection.jsx"));
 const AddVisitorForm = lazy(() => import("../pages/admin/AddVisitorNewsForm.jsx"));
 const AddPolicyForm = lazy(() => import("../pages/admin/AddPolicyForm.jsx"));
-const PolicyManagementTable = lazy(() => import("../pages/admin/PolicyTableEdit.jsx")); // ✅ Fixed typo
+const PolicyManagementTable = lazy(() => import("../pages/admin/PolicyTableEdit.jsx"));
 const ContactManager = lazy(() => import("../pages/admin/adminContact.jsx"));
 const ContactTableManager = lazy(() => import("../pages/admin/ContactTableManager.jsx"));
 const VisitorNewsTable = lazy(() => import("../pages/admin/VisitorNewsTable.jsx"));
 const Messages = lazy(() => import("../pages/admin/Messages.jsx"));
-const OurInsurancePolicy = lazy(() => import("../pages/OurInsurancePolicy.jsx")); // ✅ Fixed typo
+const OurInsurancePolicy = lazy(() => import("../pages/OurInsurancePolicy.jsx"));
 const InsuranceDashboardManager = lazy(() => import("../pages/InsuranceDashboard.jsx"));
 
 // ---------------- Agent Pages ----------------
@@ -82,7 +85,16 @@ const ManagementLayout = () => (
 
 // ---------------- App Routes ----------------
 const AppRoutes = () => (
-  <Suspense fallback={<p className="text-center mt-20">Loading...</p>}>
+  <Suspense
+    fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    }
+  >
     <Routes>
       {/* ---------------- Public Routes ---------------- */}
       <Route path="/" element={<Home />} />
@@ -117,7 +129,13 @@ const AppRoutes = () => (
       <Route path="/register" element={<Register />} />
       <Route path="/visitor/:id" element={<VisitorDetailsPage />} />
       <Route path="/insurance/:id" element={<InsuranceDetails />} />
+
+      {/* ---------------- Blog Details ---------------- */}
       <Route path="/blog/:blogId" element={<BlogDetail />} />
+      <Route path="/articles/:id" element={<BlogHomeDetail />} />
+
+
+
       <Route path="/*" element={<NotFound />} />
 
       {/* ---------------- User Dashboard ---------------- */}
@@ -149,6 +167,7 @@ const AppRoutes = () => (
           </PrivateRoute>
         }
       >
+        <Route index element={<Navigate to="all-policies" replace />} />
         <Route path="all-policies" element={<AllPolicies />} />
       </Route>
 
@@ -182,6 +201,11 @@ const AppRoutes = () => (
         <Route path="transactions" element={<Transactions />} />
         <Route path="manage-applications" element={<ManagementTable />} />
 
+        {/* HomeBlog */}
+        <Route path="management-blog" element={<ManagHomeeBlog />} />
+        <Route path="management-blog/:mode/:id?" element={<BlogpostHomeForm />} />
+        <Route path="management-blog/edit" element={<ManageBlogTableHome />} />
+
         {/* Blog */}
         <Route path="manage-blog" element={<ManageBlog />} />
         <Route path="manage-blog/:mode/:id?" element={<AddBlogForm />} />
@@ -205,7 +229,6 @@ const AppRoutes = () => (
         {/* Hero Section */}
         <Route path="hero-section" element={<HeroCarouselManager />} />
         <Route path="hero-section/:mode/:id?" element={<HeroCarouselForm />} />
-        <Route path="hero-section/edit" element={<HeroCarouselManager />} />
       </Route>
     </Routes>
   </Suspense>

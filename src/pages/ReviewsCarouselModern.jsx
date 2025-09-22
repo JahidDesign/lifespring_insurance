@@ -25,29 +25,7 @@ const ReviewsCarouselModern = () => {
   return (
     <div className="relative overflow-hidden">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 text-white py-32 px-6 md:px-12">
-        {/* Glow background */}
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.2),transparent)]"></div>
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
-            Building <span className="text-yellow-300">Trust</span>  
-            <br />
-            Through Insurance
-          </h1>
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-100 mb-8">
-            Your security is our priority. Explore reliable insurance solutions designed for peace of mind and a brighter future.
-          </p>
-          <div className="flex justify-center gap-4">
-            <button className="px-6 py-3 rounded-2xl bg-white text-blue-700 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-              Get Started
-            </button>
-            <button className="px-6 py-3 rounded-2xl border border-white font-semibold hover:bg-white/10 transition-all">
-              Learn More
-            </button>
-          </div>
-        </div>
-      </section>
-
+    
       {/* Reviews Section */}
       <section className="py-24 px-6 md:px-12 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
         {/* Decorative blurred circles */}

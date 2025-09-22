@@ -55,6 +55,16 @@ const Sidebar = () => {
       ],
     },
     {
+      name: "Blog Management",
+      path: "/admin/management-blog",
+      icon: FaFileAlt,
+      color: "from-rose-500 to-pink-400",
+      subLinks: [
+        { name: "Add Blog", path: "/admin/management-blog/add" },
+        { name: "Edit Blog", path: "/admin/management-blog/edit" },
+      ],
+    },
+    {
       name: "Carousel",
       path: "/admin/manage-policies",
       icon: FaFileAlt,

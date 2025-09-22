@@ -5,6 +5,8 @@ import CustomerTable from '../CustomerTable';
 import PaymentsTable from './PaymentsTableManagment';
 import AdminPaymentsTable from './AdminPaymentsTable';
 import BlogContactManager from "./adminContact";
+import Subscribers from "./SubscribersMG";
+
 const Dashboard = () => {
   return (
     <div className="p-6">
@@ -44,6 +46,11 @@ const Dashboard = () => {
         <BlogContactManager/>
       </section>
 
+      {/* Admin Metrics */}
+      <section>
+        <h2 className="text-xl font-medium mb-2">Admin Stats</h2>
+        <Subscribers />
+      </section>
       {/* Admin Metrics */}
       <section>
         <h2 className="text-xl font-medium mb-2">Admin Stats</h2>
