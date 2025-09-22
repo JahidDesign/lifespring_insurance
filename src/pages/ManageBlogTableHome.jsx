@@ -1,4 +1,4 @@
-// src/components/ManageBlogTable.jsx
+// src/components/ManageBlogTableHome.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -20,10 +20,17 @@ const ManageBlogTableHome = () => {
   const fetchBlogs = async () => {
     try {
       const res = await axios.get("https://insurances-lmy8.onrender.com/blogpostHome");
-      setBlogs(res.data);
+      // Robust check: handle both array directly or { blogs: [...] }
+      const blogArray = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.blogs)
+        ? res.data.blogs
+        : [];
+      setBlogs(blogArray);
     } catch (error) {
       console.error("Failed to fetch blogs", error);
       Swal.fire("Error", "Failed to load blogs", "error");
+      setBlogs([]);
     }
   };
 
@@ -178,8 +185,6 @@ const ManageBlogTableHome = () => {
                 placeholder="Blog Details"
                 className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-black"
               />
-
-              {/* Blog Image URL & Preview */}
               <input
                 type="text"
                 name="image"
@@ -196,8 +201,6 @@ const ManageBlogTableHome = () => {
                   className="w-full h-40 object-cover rounded-md mt-2"
                 />
               )}
-
-              {/* Author & Author Image */}
               <input
                 type="text"
                 name="author"
@@ -222,17 +225,14 @@ const ManageBlogTableHome = () => {
                   className="w-16 h-16 rounded-full mt-2"
                 />
               )}
-
-              {/* Tags */}
               <input
                 type="text"
                 name="tags"
                 value={formData.tags}
                 onChange={handleChange}
-                placeholder="Comma separated tags (e.g., health, insurance, travel)"
+                placeholder="Comma separated tags"
                 className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
-
               <div className="flex justify-end gap-4 mt-4">
                 <button
                   type="button"
@@ -287,26 +287,17 @@ const ManageBlogTableHome = () => {
                   className="w-20 h-16 object-cover rounded"
                 />
               </td>
-              <td
-                className="border border-gray-300 px-4 py-2 max-w-xs truncate"
-                title={blog.title}
-              >
+              <td className="border border-gray-300 px-4 py-2 max-w-xs truncate" title={blog.title}>
                 {blog.title}
               </td>
-              <td
-                className="border border-gray-300 px-4 py-2 max-w-xs truncate"
-                title={blog.details}
-              >
+              <td className="border border-gray-300 px-4 py-2 max-w-xs truncate" title={blog.details}>
                 {blog.details}
               </td>
               <td className="border border-gray-300 px-4 py-2">
                 {blog.tags && blog.tags.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {blog.tags.map((tag, i) => (
-                      <span
-                        key={i}
-                        className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
-                      >
+                      <span key={i} className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
                         #{tag}
                       </span>
                     ))}
@@ -317,11 +308,7 @@ const ManageBlogTableHome = () => {
               </td>
               <td className="border border-gray-300 px-4 py-2 flex items-center gap-2">
                 {blog.authorImage && (
-                  <img
-                    src={blog.authorImage}
-                    alt={blog.author}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <img src={blog.authorImage} alt={blog.author} className="w-8 h-8 rounded-full object-cover" />
                 )}
                 {blog.author}
               </td>
