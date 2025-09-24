@@ -16,7 +16,7 @@ const InsuranceDashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
 
-  const limit = 6;
+  const limit = 9;
 
   // ================== Fetch Services ==================
   const fetchServices = async () => {

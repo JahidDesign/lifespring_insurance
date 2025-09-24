@@ -1,8 +1,9 @@
-// File: InsuranceAgentDashboard.jsx
+// File: src/components/InsuranceAgentDashboard.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { CheckCircle, XCircle, Eye, Pencil, PlusCircle, Users } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const InsuranceAgentDashboard = () => {
   const [assignedCustomers, setAssignedCustomers] = useState([]);
@@ -10,6 +11,13 @@ const InsuranceAgentDashboard = () => {
   const [blogs, setBlogs] = useState([]);
   const [newBlog, setNewBlog] = useState({ title: "", content: "", author: "" });
   const [previewStep, setPreviewStep] = useState(false);
+
+  const [customerFilterStatus, setCustomerFilterStatus] = useState("All");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerPage, setCustomerPage] = useState(1);
+
+  const [claimsPage, setClaimsPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchCustomers();
@@ -20,7 +28,7 @@ const InsuranceAgentDashboard = () => {
   const fetchCustomers = async () => {
     try {
       const res = await axios.get("https://insurances-lmy8.onrender.com/policiesuser");
-      setAssignedCustomers(res.data);
+      setAssignedCustomers(res.data || []);
     } catch (err) {
       console.error(err);
       Swal.fire("Error", "Failed to load assigned customers", "error");
@@ -30,7 +38,7 @@ const InsuranceAgentDashboard = () => {
   const fetchPolicyClaims = async () => {
     try {
       const res = await axios.get("https://insurances-lmy8.onrender.com/policiesuser");
-      const claims = res.data.filter((p) => p.claimRequested);
+      const claims = (res.data || []).filter((p) => p.claimRequested);
       setPolicyClaims(claims);
     } catch (err) {
       console.error(err);
@@ -41,23 +49,54 @@ const InsuranceAgentDashboard = () => {
   const fetchBlogs = async () => {
     try {
       const res = await axios.get("https://insurances-lmy8.onrender.com/blogpost");
-      setBlogs(res.data);
+      setBlogs(res.data || []);
     } catch (err) {
       console.error(err);
       Swal.fire("Error", "Failed to load blogs", "error");
     }
   };
 
+  // ------------------ STATUS BADGE ------------------
+  const StatusBadge = ({ status }) => {
+    const colors = {
+      Pending: "bg-yellow-100 text-yellow-800",
+      Approved: "bg-green-100 text-green-800",
+      Rejected: "bg-red-100 text-red-800",
+    };
+    return (
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${colors[status] || "bg-gray-100 text-gray-800"}`}
+      >
+        {status}
+      </span>
+    );
+  };
+
+  // ------------------ HANDLERS ------------------
   const handleStatusChange = async (id, newStatus) => {
     try {
       await axios.patch(`https://insurances-lmy8.onrender.com/policiesuser/${id}`, { status: newStatus });
       if (newStatus === "Approved") {
         await axios.patch(`https://insurances-lmy8.onrender.com/policiesuser/${id}/purchase`);
       }
-      fetchCustomers();
+      setAssignedCustomers((prev) =>
+        prev.map((customer) => (customer._id === id ? { ...customer, status: newStatus } : customer))
+      );
+      Swal.fire("Success", `Status updated to ${newStatus}`, "success");
     } catch (err) {
       console.error(err);
       Swal.fire("Error", "Failed to update status", "error");
+    }
+  };
+
+  const handleClaimApprove = async (id) => {
+    try {
+      await axios.patch(`https://insurances-lmy8.onrender.com/policiesuser/${id}`, { claimStatus: "Approved" });
+      setPolicyClaims((prev) => prev.map((c) => (c._id === id ? { ...c, claimStatus: "Approved" } : c)));
+      Swal.fire("Success", "Claim approved", "success");
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to approve claim", "error");
     }
   };
 
@@ -84,39 +123,72 @@ const InsuranceAgentDashboard = () => {
     }
   };
 
-  const handleClaimApprove = async (id) => {
-    try {
-      await axios.patch(`https://insurances-lmy8.onrender.com/policiesuser/${id}`, { claimStatus: "Approved" });
-      fetchPolicyClaims();
-      Swal.fire("Success", "Claim approved", "success");
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to approve claim", "error");
-    }
-  };
+  // ------------------ FILTER & PAGINATION ------------------
+  const filteredCustomers = assignedCustomers.filter((user) => {
+    const matchStatus = customerFilterStatus === "All" || user.status === customerFilterStatus;
+    const matchSearch =
+      (user.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+        user.email?.toLowerCase().includes(customerSearch.toLowerCase())) ?? false;
+    return matchStatus && matchSearch;
+  });
 
-  // Badge component
-  const StatusBadge = ({ status }) => {
-    const colors = {
-      Pending: "bg-yellow-100 text-yellow-800",
-      Approved: "bg-green-100 text-green-800",
-      Rejected: "bg-red-100 text-red-800",
-    };
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${colors[status] || "bg-gray-100 text-gray-800"}`}>
-        {status}
-      </span>
-    );
-  };
+  const totalCustomerPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const customerStart = (customerPage - 1) * itemsPerPage;
+  const customerEnd = customerStart + itemsPerPage;
+  const currentCustomers = filteredCustomers.slice(customerStart, customerEnd);
+
+  const totalClaimsPages = Math.ceil(policyClaims.length / itemsPerPage);
+  const claimsStart = (claimsPage - 1) * itemsPerPage;
+  const claimsEnd = claimsStart + itemsPerPage;
+  const currentClaims = policyClaims.slice(claimsStart, claimsEnd);
 
   return (
-    <div className="bg-gray-50 min-h-screen p-8 text-gray-900 space-y-12">
+    <div className="bg-gray-50 min-h-screen p-6 md:p-8 text-gray-900 space-y-12">
       {/* Assigned Customers */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <Users className="h-6 w-6 text-blue-500" /> Assigned Customers
         </h2>
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        <div className="flex flex-wrap gap-4 mb-4 items-center">
+          <select
+            className="border px-3 py-1 rounded"
+            value={customerFilterStatus}
+            onChange={(e) => {
+              setCustomerFilterStatus(e.target.value);
+              setCustomerPage(1);
+            }}
+          >
+            <option value="All">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Search by name or email"
+            className="border px-3 py-1 rounded flex-1 min-w-[200px]"
+            value={customerSearch}
+            onChange={(e) => {
+              setCustomerSearch(e.target.value);
+              setCustomerPage(1);
+            }}
+          />
+
+          <button
+            className="px-4 py-1 bg-gray-300 hover:bg-gray-400 rounded transition"
+            onClick={() => {
+              setCustomerFilterStatus("All");
+              setCustomerSearch("");
+              setCustomerPage(1);
+            }}
+          >
+            Reset
+          </button>
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-100 text-left text-gray-700">
               <tr>
@@ -128,59 +200,155 @@ const InsuranceAgentDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {assignedCustomers.map((user, idx) => (
-                <tr
-                  key={user._id}
-                  className={`transition hover:bg-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                >
-                  <td className="px-6 py-3">{user.name}</td>
-                  <td className="px-6 py-3">{user.email}</td>
-                  <td className="px-6 py-3">{user.policies?.join(", ") || "-"}</td>
-                  <td className="px-6 py-3">
-                    <StatusBadge status={user.status || "Pending"} />
-                    <select
-                      className="ml-2 border rounded px-2 py-1 text-sm focus:ring focus:ring-blue-200"
-                      value={user.status || "Pending"}
-                      onChange={(e) => handleStatusChange(user._id, e.target.value)}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-3 flex gap-2">
-                    <button
-                      onClick={() =>
-                        Swal.fire({
-                          html: `<pre>${JSON.stringify(user, null, 2)}</pre>`,
-                          width: 600,
-                        })
-                      }
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium transition"
-                    >
-                      <Eye className="w-4 h-4" /> View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {assignedCustomers.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center py-6 text-gray-500">
-                    No assigned customers found.
-                  </td>
-                </tr>
-              )}
+              <AnimatePresence>
+                {currentCustomers.map((user, idx) => (
+                  <motion.tr
+                    key={user._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className={`transition hover:bg-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                  >
+                    <td className="px-6 py-3">{user.name}</td>
+                    <td className="px-6 py-3">{user.email}</td>
+                    <td className="px-6 py-3">{user.policies?.join(", ") || "-"}</td>
+                    <td className="px-6 py-3 flex items-center gap-2">
+                      <StatusBadge status={user.status || "Pending"} />
+                      <select
+                        className="border rounded px-2 py-1 text-sm focus:ring focus:ring-blue-200"
+                        value={user.status || "Pending"}
+                        onChange={(e) => handleStatusChange(user._id, e.target.value)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-3 flex gap-2">
+                      <button
+                        onClick={() =>
+                          Swal.fire({
+                            html: `<pre>${JSON.stringify(user, null, 2)}</pre>`,
+                            width: 600,
+                          })
+                        }
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium transition"
+                      >
+                        <Eye className="w-4 h-4" /> View
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden grid gap-4">
+          <AnimatePresence>
+            {currentCustomers.map((user) => (
+              <motion.div
+                key={user._id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white shadow rounded-xl p-4 flex flex-col gap-2"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold">{user.name}</h3>
+                  <StatusBadge status={user.status || "Pending"} />
+                </div>
+                <p className="text-sm text-gray-600">{user.email}</p>
+                <p className="text-sm text-gray-700">{user.policies?.join(", ") || "-"}</p>
+                <div className="flex justify-between items-center mt-2">
+                  <select
+                    className="border rounded px-2 py-1 text-sm flex-1"
+                    value={user.status || "Pending"}
+                    onChange={(e) => handleStatusChange(user._id, e.target.value)}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                  <button
+                    onClick={() =>
+                      Swal.fire({ html: `<pre>${JSON.stringify(user, null, 2)}</pre>`, width: 600 })
+                    }
+                    className="text-blue-600 hover:text-blue-800 font-medium ml-2"
+                  >
+                    View
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* ------------------ Policy Claims Section ------------------ */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <CheckCircle className="h-6 w-6 text-yellow-500" /> Policy Clearance
+        </h2>
+
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="px-6 py-3">Policy</th>
+                <th className="px-6 py-3">Amount</th>
+                <th className="px-6 py-3">Customer</th>
+                <th className="px-6 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence>
+                {currentClaims.map((claim, idx) => (
+                  <motion.tr
+                    key={claim._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className={`transition hover:bg-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                  >
+                    <td className="px-6 py-3">{claim.policyName}</td>
+                    <td className="px-6 py-3">{claim.amount}</td>
+                    <td className="px-6 py-3">{claim.customerName || claim.name || "-"}</td>
+                    <td className="px-6 py-3 flex gap-3">
+                      <button
+                        onClick={() =>
+                          Swal.fire({ html: `<pre>${JSON.stringify(claim, null, 2)}</pre>`, width: 600 })
+                        }
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium transition"
+                      >
+                        <Eye className="w-4 h-4" /> View
+                      </button>
+                      <button
+                        onClick={() => handleClaimApprove(claim._id)}
+                        className="flex items-center gap-1 text-green-600 hover:text-green-800 font-medium transition"
+                      >
+                        <CheckCircle className="w-4 h-4" /> Approve
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
       </section>
 
-      {/* Manage Blogs */}
+      {/* ------------------ Blogs Section ------------------ */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <Pencil className="h-6 w-6 text-green-500" /> Manage Blogs
         </h2>
-        <div className="bg-white rounded-xl shadow p-6">
+
+        <div className="bg-white rounded-xl shadow p-6 space-y-4">
           {!previewStep ? (
             <div className="grid gap-4 md:grid-cols-3">
               <input
@@ -235,95 +403,6 @@ const InsuranceAgentDashboard = () => {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Blog List */}
-        <div className="mt-6 bg-white rounded-xl shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="px-6 py-3">Title</th>
-                <th className="px-6 py-3">Author</th>
-                <th className="px-6 py-3">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {blogs.map((blog, idx) => (
-                <tr
-                  key={blog._id}
-                  className={`transition hover:bg-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                >
-                  <td className="px-6 py-3">{blog.title}</td>
-                  <td className="px-6 py-3">{blog.author}</td>
-                  <td className="px-6 py-3">{blog.date}</td>
-                </tr>
-              ))}
-              {blogs.length === 0 && (
-                <tr>
-                  <td colSpan="3" className="text-center py-6 text-gray-500">
-                    No blogs found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Policy Clearance */}
-      <section>
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <CheckCircle className="h-6 w-6 text-yellow-500" /> Policy Clearance
-        </h2>
-        <div className="bg-white rounded-xl shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="px-6 py-3">Policy</th>
-                <th className="px-6 py-3">Amount</th>
-                <th className="px-6 py-3">Customer Name</th>
-                <th className="px-6 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {policyClaims.map((claim, idx) => (
-                <tr
-                  key={claim._id}
-                  className={`transition hover:bg-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                >
-                  <td className="px-6 py-3">{claim.policyName}</td>
-                  <td className="px-6 py-3">{claim.amount}</td>
-                  <td className="px-6 py-3">{claim.customerName || claim.name || "-"}</td>
-                  <td className="px-6 py-3 flex gap-3">
-                    <button
-                      onClick={() =>
-                        Swal.fire({
-                          html: `<pre>${JSON.stringify(claim, null, 2)}</pre>`,
-                          width: 600,
-                        })
-                      }
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium transition"
-                    >
-                      <Eye className="w-4 h-4" /> View
-                    </button>
-                    <button
-                      onClick={() => handleClaimApprove(claim._id)}
-                      className="flex items-center gap-1 text-green-600 hover:text-green-800 font-medium transition"
-                    >
-                      <CheckCircle className="w-4 h-4" /> Approve
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {policyClaims.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="text-center py-6 text-gray-500">
-                    No claims requested.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
         </div>
       </section>
     </div>

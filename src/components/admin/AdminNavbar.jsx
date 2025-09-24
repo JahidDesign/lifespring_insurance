@@ -7,7 +7,7 @@ import { AuthContext } from "../../context/AuthContext";
 // --- Notifications Dropdown Component ---
 const NotificationsDropdown = ({ notifications, onClose }) => {
   const unreadCount = notifications.filter(n => n.unread).length;
-
+  const photoURL = user?.photoURL || user?.photo || "/default-avatar.png";
   return (
     <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50">
       <div className="px-4 py-3 border-b border-gray-100">
@@ -45,7 +45,7 @@ const ProfileDropdown = ({ user, logout, onClose }) => (
     <div className="px-4 py-3 border-b border-gray-100">
       <div className="flex items-center space-x-3">
         <img
-          src={user.photoURL || "/default-avatar.png"}
+          src={photoURL}
           alt="Admin"
           className="w-10 h-10 rounded-full object-cover"
         />

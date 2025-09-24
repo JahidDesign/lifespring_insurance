@@ -1,4 +1,4 @@
-// src/routes/PrivateRoute.jsx
+// File: src/components/PrivateRoute.jsx
 import React, { useContext, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Shield, AlertTriangle, RefreshCw, Home, Phone, Mail } from "lucide-react";
@@ -6,17 +6,15 @@ import { AuthContext } from "../context/AuthContext";
 
 const MAIN_ADMIN_EMAIL = "jhadam904@gmail.com";
 
-const LoadingSpinner = () => (
-  <div className="relative">
-    <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-    <Shield className="absolute top-3 left-3 w-6 h-6 text-blue-600" />
-  </div>
-);
-
+// ---------- Loading Component ----------
 const LoadingComponent = () => (
   <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
     <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md mx-4">
-      <div className="mb-6 flex justify-center"><LoadingSpinner /></div>
+      <div className="mb-6 flex justify-center">
+        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin relative">
+          <Shield className="absolute top-3 left-3 w-6 h-6 text-blue-600" />
+        </div>
+      </div>
       <h2 className="text-2xl font-bold text-gray-800 mb-2">SecureGuard Insurance</h2>
       <p className="text-gray-600 mb-4">Securing your account...</p>
       <div className="flex justify-center space-x-2">
@@ -29,6 +27,7 @@ const LoadingComponent = () => (
   </div>
 );
 
+// ---------- Error Component ----------
 const ErrorComponent = ({ error, onRetry }) => (
   <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-orange-50">
     <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-lg mx-4">
@@ -68,6 +67,7 @@ const ErrorComponent = ({ error, onRetry }) => (
   </div>
 );
 
+// ---------- PrivateRoute ----------
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading, error, isAdmin, role } = useContext(AuthContext);
   const [retryKey, setRetryKey] = useState(0);
@@ -80,7 +80,7 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   if (user.email === MAIN_ADMIN_EMAIL || isAdmin) return children;
 
   // Role-based access
-  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) return <Navigate to="/" replace />;
+  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) return <Navigate to="/unauthorized" replace />;
 
   return children;
 };

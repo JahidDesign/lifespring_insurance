@@ -102,14 +102,19 @@ const ErrorAlert = ({ show, onClose, message }) => {
   );
 };
 
-// Checkout Form Component
+// Mock payment processor function
+
+
 const CheckoutForm = (props) => {
+  const { user } = useContext(AuthContext);
+
   const [processing, setProcessing] = useState(false);
   const [cardData, setCardData] = useState({
     number: "",
     expiry: "",
     cvc: "",
-    name: "",
+    name: user?.displayName || user?.name || "",
+    email: user?.email || "",
   });
   const [showCardNumber, setShowCardNumber] = useState(true);
   const [showCVC, setShowCVC] = useState(false);
@@ -123,24 +128,19 @@ const CheckoutForm = (props) => {
       alert(`${type.toUpperCase()}: ${message}`);
     });
 
-  const formatCardNumber = (value) => {
-    const cleaned = value.replace(/\D/g, "").slice(0, 16);
-    return cleaned;
-  };
-
+  // --- Formatting ---
+  const formatCardNumber = (value) => value.replace(/\D/g, "").slice(0, 16);
   const formatExpiry = (value) => {
     const cleaned = value.replace(/\D/g, "");
     if (cleaned.length >= 2) return cleaned.slice(0, 2) + "/" + cleaned.slice(2, 4);
     return cleaned;
   };
-
   const getCardType = (number) => {
     if (number.startsWith("4")) return "visa";
     if (number.startsWith("5") || number.startsWith("2")) return "mastercard";
     if (number.startsWith("3")) return "amex";
     return "generic";
   };
-
   const getCardGradient = (type) => {
     switch (type) {
       case "visa":
@@ -154,52 +154,15 @@ const CheckoutForm = (props) => {
     }
   };
 
+  // --- Handlers ---
   const handleCardNumberChange = (e) =>
     setCardData((prev) => ({ ...prev, number: formatCardNumber(e.target.value) }));
-
   const handleExpiryChange = (e) =>
     setCardData((prev) => ({ ...prev, expiry: formatExpiry(e.target.value) }));
-
   const handleCVCChange = (e) =>
     setCardData((prev) => ({ ...prev, cvc: e.target.value.replace(/\D/g, "").slice(0, 3) }));
-
   const handleNameChange = (e) =>
     setCardData((prev) => ({ ...prev, name: e.target.value.toUpperCase() }));
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!cardData.number || !cardData.expiry || !cardData.cvc || !cardData.name) {
-      handleAlert("error", "Please fill in all card details");
-      return;
-    }
-    if (cardData.number.length !== 16) {
-      handleAlert("error", "Card number must be 16 digits");
-      return;
-    }
-    if (cardData.cvc.length !== 3) {
-      handleAlert("error", "CVC must be 3 digits");
-      return;
-    }
-    setProcessing(true);
-    try {
-      const result = await processPayment(cardData, title);
-      if (result.status === "succeeded") {
-        handleAlert("success", "Payment successful");
-        handleSuccess();
-      }
-    } catch (err) {
-      handleAlert("error", err.message);
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const displayCardNumber = cardData.number
-    ? cardData.number.replace(/(.{4})/g, "$1 ").trim()
-    : "";
-
-  const cardType = getCardType(cardData.number);
-  const cardGradient = getCardGradient(cardType);
 
   const toggleCardNumber = () => setShowCardNumber(!showCardNumber);
   const toggleCVC = () => setShowCVC(!showCVC);
@@ -209,13 +172,61 @@ const CheckoutForm = (props) => {
       number: "4242424242424242",
       expiry: "12/34",
       cvc: "123",
-      name: "John Doe",
+      name: user?.displayName || user?.name || "John Doe",
+      email: user?.email || "",
     });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // 1️⃣ Basic validation
+    if (!cardData.number || !cardData.expiry || !cardData.cvc || !cardData.name) {
+      handleAlert("error", "Please fill in all card details");
+      return;
+    }
+
+    // 2️⃣ Card number validation (16 digits)
+    if (cardData.number.replace(/\s+/g, "").length !== 16) {
+      handleAlert("error", "Card number must be 16 digits");
+      return;
+    }
+
+    // 3️⃣ CVC validation (3 digits)
+    if (cardData.cvc.length !== 3) {
+      handleAlert("error", "CVC must be 3 digits");
+      return;
+    }
+
+    setProcessing(true);
+
+    try {
+      // 4️⃣ Call your payment processor
+      const result = await processPayment(cardData, title);
+
+      if (result.status === "succeeded") {
+        handleAlert("success", "Payment successful");
+
+        // 5️⃣ Call parent success handler
+        await handleSuccess();
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      handleAlert("error", err.message || "Payment failed");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const displayCardNumber = cardData.number
+    ? cardData.number.replace(/(.{4})/g, "$1 ").trim()
+    : "";
+  const cardType = getCardType(cardData.number);
+  const cardGradient = getCardGradient(cardType);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 overflow-y-auto max-h-[90vh]">
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8">
-        {/* Sticky Credit Card */}
+        {/* Sticky Credit Card Preview */}
         <div className="w-full lg:w-1/2 sticky top-4 self-start">
           <div
             className={`relative w-full h-52 bg-gradient-to-br ${cardGradient} rounded-2xl text-white p-6 shadow-2xl transform transition-transform hover:scale-105 duration-300`}
@@ -277,7 +288,7 @@ const CheckoutForm = (props) => {
               </button>
             </div>
 
-            {/* Expiry and CVC */}
+            {/* Expiry & CVC */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Expiry Date</label>
@@ -333,7 +344,7 @@ const CheckoutForm = (props) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Buttons */}
             <div className="flex gap-4 pt-4">
               <button
                 type="submit"
@@ -366,6 +377,7 @@ const CheckoutForm = (props) => {
     </div>
   );
 };
+
 
 
 // Pagination Component
@@ -438,6 +450,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
+
+
+
 // Main Component
 const PolicyCardsWithPayment = () => {
   const [policies, setPolicies] = useState([]);
@@ -451,6 +466,7 @@ const PolicyCardsWithPayment = () => {
   const [errorAlert, setErrorAlert] = useState({ show: false, message: "" });
   const ITEMS_PER_PAGE = 6;
 
+  // Alert handler
   const showAlert = (type, message) => {
     if (type === "success") {
       setSuccessAlert({ show: true, policyTitle: message });
@@ -461,193 +477,112 @@ const PolicyCardsWithPayment = () => {
     }
   };
 
+  // Fetch policies
   useEffect(() => {
     const fetchPolicies = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        
-        try {
-          const response = await fetch("https://insurances-lmy8.onrender.com/policies");
-          if (response.ok) {
-            const data = await response.json();
-            const policiesData = safeJsonParse(data.data || data, []);
-            if (Array.isArray(policiesData) && policiesData.length > 0) {
-              setPolicies(policiesData);
-              return;
-            }
-          }
-        } catch (apiError) {
-          console.warn("API fetch failed, using mock data:", apiError);
+        const response = await fetch("https://insurances-lmy8.onrender.com/policies");
+        if (response.ok) {
+          const data = await response.json();
+          const policiesData = safeJsonParse(JSON.stringify(data.data || data), []);
+          if (Array.isArray(policiesData)) setPolicies(policiesData);
+          else setPolicies([]);
+        } else {
+          setPolicies([]);
         }
-        
+      } catch {
+        // Fallback mock data
         const mockPolicies = [
-          { 
-            _id: "1", 
-            title: "Comprehensive Health Insurance", 
-            type: "Health", 
-            description: "Complete healthcare coverage with worldwide benefits.", 
-            image: "https://picsum.photos/400/240?random=1", 
-            coverageAmount: "$100,000", 
-            premium: "299", 
-            rating: "4.8", 
-            term: "Annual", 
-            ageMin: "18", 
-            ageMax: "65" 
-          },
-          { 
-            _id: "2", 
-            title: "Term Life Insurance", 
-            type: "Life", 
-            description: "Affordable life insurance protection for your family.", 
-            image: "https://picsum.photos/400/240?random=2", 
-            coverageAmount: "$500,000", 
-            premium: "45", 
-            rating: "4.9", 
-            term: "20 years", 
-            ageMin: "21", 
-            ageMax: "70" 
-          },
-          { 
-            _id: "3", 
-            title: "Auto Insurance Plus", 
-            type: "Vehicle", 
-            description: "Comprehensive vehicle protection and roadside assistance.", 
-            image: "https://picsum.photos/400/240?random=3", 
-            coverageAmount: "$25,000", 
-            premium: "89", 
-            rating: "4.6", 
-            term: "6 months", 
-            ageMin: "18", 
-            ageMax: "75" 
-          },
-          { 
-            _id: "4", 
-            title: "Travel Insurance", 
-            type: "Travel", 
-            description: "Complete travel protection for international trips.", 
-            image: "https://picsum.photos/400/240?random=4", 
-            coverageAmount: "$50,000", 
-            premium: "65", 
-            rating: "4.7", 
-            term: "Per trip", 
-            ageMin: "18", 
-            ageMax: "80" 
-          },
-          { 
-            _id: "5", 
-            title: "Home Insurance", 
-            type: "Home", 
-            description: "Protect your home and belongings from unexpected events.", 
-            image: "https://picsum.photos/400/240?random=5", 
-            coverageAmount: "$300,000", 
-            premium: "120", 
-            rating: "4.5", 
-            term: "Annual", 
-            ageMin: "21", 
-            ageMax: "75" 
-          },
-          { 
-            _id: "6", 
-            title: "Pet Insurance", 
-            type: "Pet", 
-            description: "Keep your furry friends healthy with comprehensive coverage.", 
-            image: "https://picsum.photos/400/240?random=6", 
-            coverageAmount: "$15,000", 
-            premium: "35", 
-            rating: "4.4", 
-            term: "Annual", 
-            ageMin: "18", 
-            ageMax: "70" 
-          }
+          { _id: "1", title: "Comprehensive Health Insurance", type: "Health", description: "Complete healthcare coverage with worldwide benefits.", image: "https://picsum.photos/400/240?random=1", coverageAmount: "$100,000", premium: "299", rating: "4.8", term: "Annual", ageMin: "18", ageMax: "65" },
+          { _id: "2", title: "Term Life Insurance", type: "Life", description: "Affordable life insurance protection for your family.", image: "https://picsum.photos/400/240?random=2", coverageAmount: "$500,000", premium: "45", rating: "4.9", term: "20 years", ageMin: "21", ageMax: "70" },
+          { _id: "3", title: "Auto Insurance Plus", type: "Vehicle", description: "Comprehensive vehicle protection and roadside assistance.", image: "https://picsum.photos/400/240?random=3", coverageAmount: "$25,000", premium: "89", rating: "4.6", term: "6 months", ageMin: "18", ageMax: "75" },
+          { _id: "4", title: "Travel Insurance", type: "Travel", description: "Complete travel protection for international trips.", image: "https://picsum.photos/400/240?random=4", coverageAmount: "$50,000", premium: "65", rating: "4.7", term: "Per trip", ageMin: "18", ageMax: "80" },
+          { _id: "5", title: "Home Insurance", type: "Home", description: "Protect your home and belongings from unexpected events.", image: "https://picsum.photos/400/240?random=5", coverageAmount: "$300,000", premium: "120", rating: "4.5", term: "Annual", ageMin: "21", ageMax: "75" },
+          { _id: "6", title: "Pet Insurance", type: "Pet", description: "Keep your furry friends healthy with comprehensive coverage.", image: "https://picsum.photos/400/240?random=6", coverageAmount: "$15,000", premium: "35", rating: "4.4", term: "Annual", ageMin: "18", ageMax: "70" }
         ];
         setPolicies(mockPolicies);
-        
-      } catch (error) {
-        console.error("Failed to fetch policies:", error);
-        setPolicies([]);
-        showAlert("error", "Failed to load policies. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    
     fetchPolicies();
   }, []);
 
-  useEffect(() => { 
-    setCurrentPage(1); 
-  }, [searchTerm, filterType]);
+  // Handle successful checkout
+  const handleCheckoutSuccess = async () => {
+  if (!checkoutData || !user) return;
 
-  const filteredPolicies = policies.filter((policy) => {
-    const matchesType = filterType === "All" || policy.type === filterType;
-    const matchesSearch = policy.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         policy.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesType && matchesSearch;
-  });
+  try {
+    const paymentPayload = {
+      policyId: checkoutData._id,
+      title: checkoutData.title,
+      premium: checkoutData.premium,
+      coverageAmount: checkoutData.coverageAmount || "",
+      type: checkoutData.type || "Standard",
+      userEmail: user.email,
+    };
 
+    const res = await fetch("https://insurances-lmy8.onrender.com/paymentsInsurance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(paymentPayload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to record payment");
+    }
+
+    showAlert("success", checkoutData.title);
+    console.log("Payment Saved:", data);
+  } catch (error) {
+    console.error("Payment save error:", error);
+    showAlert("error", "Payment succeeded, but failed to save record");
+  } finally {
+    setCheckoutData(null); // close checkout
+  }
+};
+
+
+  // Reset page on filter/search change
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterType]);
+
+  // Filtered & paginated policies
+  const filteredPolicies = policies.filter((p) => 
+    (filterType === "All" || p.type === filterType) &&
+    (p.title?.toLowerCase().includes(searchTerm.toLowerCase()) || p.description?.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
   const totalPages = Math.ceil(filteredPolicies.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPolicies = filteredPolicies.slice(startIndex, endIndex);
+  const currentPolicies = filteredPolicies.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+  // Payment modal
   const handlePayment = (policy) => {
-    if (!user) {
-      showAlert("error", "Please login to purchase a policy");
-      return;
-    }
+    if (!user) return showAlert("error", "Please login to purchase a policy");
     setCheckoutData(policy);
   };
-
-  const handleCheckoutSuccess = () => {
-    setCheckoutData(null);
-  };
-
-  const handleCheckoutCancel = () => {
-    setCheckoutData(null);
-  };
+  const handleCheckoutCancel = () => setCheckoutData(null);
 
   return (
     <div className="container mx-auto px-4 py-12 min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      {successAlert.show && (
-        <SuccessAlert 
-          show={successAlert.show} 
-          onClose={() => setSuccessAlert({ show: false, policyTitle: "" })} 
-          policyTitle={successAlert.policyTitle} 
-        />
-      )}
-      {errorAlert.show && (
-        <ErrorAlert 
-          show={errorAlert.show} 
-          onClose={() => setErrorAlert({ show: false, message: "" })} 
-          message={errorAlert.message} 
-        />
-      )}
+      {successAlert.show && <SuccessAlert show={successAlert.show} onClose={() => setSuccessAlert({ show: false, policyTitle: "" })} policyTitle={successAlert.policyTitle} />}
+      {errorAlert.show && <ErrorAlert show={errorAlert.show} onClose={() => setErrorAlert({ show: false, message: "" })} message={errorAlert.message} />}
 
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-          Insurance Policies
-        </h1>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Insurance Policies</h1>
         <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto mb-6">
-          Explore our wide range of insurance plans designed to protect your life, health, and assets. Compare policies, check premiums, and secure your future today.
+          Explore our wide range of insurance plans designed to protect your life, health, and assets.
         </p>
-        <div className="flex justify-center">
-          <span className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></span>
-        </div>
+        <div className="flex justify-center"><span className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></span></div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-        <input
-          type="text"
-          placeholder="Search policies..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 w-full md:w-1/2 shadow-sm transition-all"
-        />
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 shadow-sm transition-all"
-        >
+        <input type="text" placeholder="Search policies..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+          className="p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 w-full md:w-1/2 shadow-sm transition-all" />
+        <select value={filterType} onChange={e => setFilterType(e.target.value)}
+          className="p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-blue-500 shadow-sm transition-all">
           <option value="All">All Types</option>
           <option value="Health">Health</option>
           <option value="Life">Life</option>
@@ -676,62 +611,32 @@ const PolicyCardsWithPayment = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentPolicies.map((policy) => (
+            {currentPolicies.map(policy => (
               <div key={policy._id} className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col">
                 <div className="relative overflow-hidden">
-                  <img 
-                    src={policy.image} 
-                    alt={policy.title} 
-                    className="h-48 w-full object-cover transition-transform duration-300 hover:scale-105" 
-                  />
-                  <div className="absolute top-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                    {policy.type}
-                  </div>
+                  <img src={policy.image} alt={policy.title} className="h-48 w-full object-cover transition-transform duration-300 hover:scale-105" />
+                  <div className="absolute top-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-semibold text-gray-700">{policy.type}</div>
                 </div>
-                
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <h2 className="text-xl font-semibold mb-2 text-gray-800">{policy.title}</h2>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">{policy.description}</p>
-                    
                     <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-3">
-                        <Shield className="w-5 h-5 text-blue-500" />
-                        <span className="text-gray-700 text-sm">Coverage: {policy.coverageAmount}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <DollarSign className="w-5 h-5 text-green-500" />
-                        <span className="text-gray-700 text-sm">Premium: ${policy.premium}/month</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                        <span className="text-gray-700 text-sm">{policy.rating} Rating</span>
-                      </div>
+                      <div className="flex items-center gap-3"><Shield className="w-5 h-5 text-blue-500" /><span className="text-gray-700 text-sm">Coverage: {policy.coverageAmount}</span></div>
+                      <div className="flex items-center gap-3"><DollarSign className="w-5 h-5 text-green-500" /><span className="text-gray-700 text-sm">Premium: ${policy.premium}/month</span></div>
+                      <div className="flex items-center gap-3"><Star className="w-5 h-5 text-yellow-400 fill-current" /><span className="text-gray-700 text-sm">{policy.rating} Rating</span></div>
                     </div>
                   </div>
-                  
-                  <button
-                    onClick={() => handlePayment(policy)}
-                    className={`w-full py-3 px-6 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-                      user
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
-                        : "bg-gray-300 text-gray-700 cursor-not-allowed"
-                    }`}
-                    disabled={!user}
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    {user ? "Pay Premium" : "Login Required"}
+                  <button onClick={() => handlePayment(policy)}
+                    className={`w-full py-3 px-6 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${user ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105" : "bg-gray-300 text-gray-700 cursor-not-allowed"}`}
+                    disabled={!user}>
+                    <CreditCard className="w-5 h-5" />{user ? "Pay Premium" : "Login Required"}
                   </button>
                 </div>
               </div>
             ))}
           </div>
-
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={totalPages} 
-            onPageChange={setCurrentPage} 
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </>
       )}
 
@@ -749,8 +654,4 @@ const PolicyCardsWithPayment = () => {
   );
 };
 
-export default () => (
-  
-    <PolicyCardsWithPayment />
-  
-);
+export default PolicyCardsWithPayment;

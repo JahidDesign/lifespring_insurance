@@ -10,7 +10,6 @@ const AdminPaymentsTable = () => {
   const [filterTitle, setFilterTitle] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPayments, setSelectedPayments] = useState([]);
   const itemsPerPage = 6;
 
   // Fetch all payments
@@ -67,60 +66,6 @@ const AdminPaymentsTable = () => {
     }
   };
 
-  // Delete a single payment
-  const deletePayment = async (id) => {
-    const confirm = await Swal.fire({
-      title: "Are you sure?",
-      text: "This payment will be permanently deleted.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-    });
-
-    if (confirm.isConfirmed) {
-      try {
-        await axios.delete(`https://insurances-lmy8.onrender.com/payments/${id}`);
-        setPayments((prev) => prev.filter((p) => p._id !== id));
-        Swal.fire("Deleted!", "Payment has been deleted.", "success");
-      } catch (err) {
-        console.error(err);
-        Swal.fire("Error", "Failed to delete payment", "error");
-      }
-    }
-  };
-
-  // Bulk delete selected payments
-  const bulkDelete = async () => {
-    if (selectedPayments.length === 0) {
-      Swal.fire("Info", "Please select at least one payment to delete.", "info");
-      return;
-    }
-
-    const confirm = await Swal.fire({
-      title: "Are you sure?",
-      text: `This will permanently delete ${selectedPayments.length} payment(s).`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete all!",
-      cancelButtonText: "Cancel",
-    });
-
-    if (confirm.isConfirmed) {
-      try {
-        await Promise.all(
-          selectedPayments.map((id) => axios.delete(`https://insurances-lmy8.onrender.com/payments/${id}`))
-        );
-        setPayments((prev) => prev.filter((p) => !selectedPayments.includes(p._id)));
-        setSelectedPayments([]);
-        Swal.fire("Deleted!", "Selected payments have been deleted.", "success");
-      } catch (err) {
-        console.error(err);
-        Swal.fire("Error", "Failed to delete selected payments", "error");
-      }
-    }
-  };
-
   if (loading) return <p className="text-center py-8">Loading payments...</p>;
 
   const getStatusColor = (status) => {
@@ -166,24 +111,6 @@ const AdminPaymentsTable = () => {
     setFilterStatus("All");
     setSearchTerm("");
     setCurrentPage(1);
-  };
-
-  // Toggle selection of a payment
-  const toggleSelectPayment = (id) => {
-    setSelectedPayments((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
-    );
-  };
-
-  // Toggle select all on current page
-  const toggleSelectAll = () => {
-    const currentIds = currentPayments.map((p) => p._id);
-    const allSelected = currentIds.every((id) => selectedPayments.includes(id));
-    if (allSelected) {
-      setSelectedPayments((prev) => prev.filter((id) => !currentIds.includes(id)));
-    } else {
-      setSelectedPayments((prev) => [...new Set([...prev, ...currentIds])]);
-    }
   };
 
   return (
@@ -263,24 +190,6 @@ const AdminPaymentsTable = () => {
         >
           Reset
         </button>
-
-        <button
-          onClick={bulkDelete}
-          className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-        >
-          Delete Selected
-        </button>
-      </div>
-
-      {/* Select All Checkbox */}
-      <div className="mb-4 flex items-center">
-        <input
-          type="checkbox"
-          checked={currentPayments.every((p) => selectedPayments.includes(p._id))}
-          onChange={toggleSelectAll}
-          className="mr-2"
-        />
-        <span>Select All on Current Page</span>
       </div>
 
       {/* Payments Grid */}
@@ -291,14 +200,7 @@ const AdminPaymentsTable = () => {
             className="bg-white shadow-lg rounded-xl p-5 hover:shadow-xl transition-shadow duration-300"
           >
             <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selectedPayments.includes(p._id)}
-                  onChange={() => toggleSelectPayment(p._id)}
-                />
-                <h3 className="text-xl font-semibold text-gray-800">{p.title}</h3>
-              </div>
+              <h3 className="text-xl font-semibold text-gray-800">{p.title}</h3>
               <span
                 className={`px-3 py-1 rounded-full font-semibold text-sm ${getStatusColor(
                   p.status
@@ -318,14 +220,13 @@ const AdminPaymentsTable = () => {
               <span className="font-semibold">Policy ID:</span> {p.policyId}
             </p>
             <p className="text-gray-600 mb-1">
-              <span className="font-semibold">Total Payments for this Policy:</span>{" "}
-              {policyCounts[p.policyId]}
+              <span className="font-semibold">Total Payments for this Policy:</span> {policyCounts[p.policyId]}
             </p>
             <p className="text-gray-500 text-sm mb-3">
               Created: {new Date(p.createdAt).toLocaleString()}
             </p>
 
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2">
               {p.status === "pending" ? (
                 <>
                   <button
@@ -344,14 +245,6 @@ const AdminPaymentsTable = () => {
               ) : (
                 <span className="text-gray-400 italic">No Action</span>
               )}
-
-              {/* Delete Button */}
-              <button
-                onClick={() => deletePayment(p._id)}
-                className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                Delete
-              </button>
             </div>
           </div>
         ))}

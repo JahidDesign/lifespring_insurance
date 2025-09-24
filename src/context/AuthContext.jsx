@@ -15,7 +15,9 @@ import toast from "react-hot-toast";
 // Create Context
 export const AuthContext = createContext();
 
-// Auth Provider
+// Define Agent roles
+const AGENT_ROLES = ["agent", "a", "b", "c", "d", "e"]; // adjust roles as needed
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
@@ -32,20 +34,16 @@ export const AuthProvider = ({ children }) => {
     import.meta.env.VITE_BACKEND_URL || "https://insurances-lmy8.onrender.com";
   const MAIN_ADMIN_EMAIL = "jhadam904@gmail.com";
 
-  // Persist user & token
   useEffect(() => {
     if (user) localStorage.setItem("user", JSON.stringify(user));
     else localStorage.removeItem("user");
-
     if (token) localStorage.setItem("authToken", token);
     else localStorage.removeItem("authToken");
   }, [user, token]);
 
-  // Sync Firebase user with backend
   const syncWithBackend = useCallback(
     async (firebaseUser) => {
       if (!firebaseUser) return;
-
       try {
         const idToken = await getIdToken(firebaseUser, true);
         const res = await fetch(`${API_URL}/customer/firebase-login`, {
@@ -53,15 +51,15 @@ export const AuthProvider = ({ children }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idToken }),
         });
-
         if (!res.ok) throw new Error("Backend login failed");
 
         const data = await res.json();
         let updatedUser = data.user;
 
-        if (updatedUser?.email === MAIN_ADMIN_EMAIL) {
-          updatedUser.role = "admin";
-        }
+        // Assign roles
+        if (updatedUser?.email === MAIN_ADMIN_EMAIL) updatedUser.role = "admin";
+        else if (AGENT_ROLES.includes(updatedUser?.role)) updatedUser.role = "agent";
+        else updatedUser.role = "customer";
 
         setUser(updatedUser);
         setToken(data.token);
@@ -74,22 +72,16 @@ export const AuthProvider = ({ children }) => {
     [API_URL]
   );
 
-  // Firebase listener
   useEffect(() => {
     setPersistence(auth, browserLocalPersistence).then(() => {
       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-          await syncWithBackend(firebaseUser);
-        } else {
-          setLoading(false);
-        }
+        if (firebaseUser) await syncWithBackend(firebaseUser);
+        else setLoading(false);
       });
-
       return () => unsubscribe();
     });
   }, [syncWithBackend]);
 
-  // Google login
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -102,16 +94,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Manual login (JWT)
   const login = (userData, jwtToken) => {
-    if (userData?.email === MAIN_ADMIN_EMAIL) {
-      userData.role = "admin";
-    }
+    if (userData?.email === MAIN_ADMIN_EMAIL) userData.role = "admin";
+    else if (AGENT_ROLES.includes(userData?.role)) userData.role = "agent";
+    else userData.role = "customer";
+
     setUser(userData);
     setToken(jwtToken);
   };
 
-  // Logout
   const logout = async () => {
     try {
       await firebaseSignOut(auth);
@@ -134,6 +125,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!user && !!token,
         isAdmin: user?.role === "admin",
+        isAgent: user?.role === "agent",
         role: user?.role || "customer",
       }}
     >

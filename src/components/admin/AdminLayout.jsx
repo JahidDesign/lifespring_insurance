@@ -1,12 +1,21 @@
 import Sidebar from "./Sidebar";
 import AdminNavbar from "./AdminNavbar";
-import { Outlet } from "react-router-dom";
-import { Helmet } from "react-helmet-async"; // ✅ import Helmet
+import { Outlet, Navigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 const AdminLayout = () => {
+  const { user } = useContext(AuthContext);
+
+  // Role check: only allow admin or agent
+  if (!user || !["admin", "agent"].includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />; // redirect non-admin/agent users
+  }
+
   return (
     <div className="flex">
-      {/* ✅ Global Helmet for Admin Panel */}
+      {/* Global Helmet for Admin Panel */}
       <Helmet>
         <title>Admin Dashboard | Smart Insurance</title>
         <meta

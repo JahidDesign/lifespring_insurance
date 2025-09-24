@@ -7,7 +7,7 @@ function Layout() {
   const location = useLocation();
 
   // Pages where Navbar and Footer should be hidden
-  const hideLayout = ['/login', '/register', '/404', '/admin'];
+  const hideLayout = ['/login', '/register', '/404', '/admin',"/agent",'*','/customer'];
 
   // Check if current path matches exactly OR starts with '/admin'
   const shouldHide = hideLayout.some(route =>
